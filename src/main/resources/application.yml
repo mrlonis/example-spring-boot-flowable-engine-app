@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: example-spring-boot-flowable-engine-app

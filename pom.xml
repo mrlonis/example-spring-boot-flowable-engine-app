@@ -14,10 +14,43 @@
   <description>Demo project for Spring Boot with Flowable Engine</description>
   <properties>
     <cleanthat.vesion>2.20</cleanthat.vesion>
+    <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
+    <git-build-hook-maven-plugin.version>3.5.0</git-build-hook-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <java.version>21</java.version>
-    <palantir-java-format.version>2.50.0</palantir-java-format.version>
-    <spotless.version>2.44.2</spotless.version>
+    <palantir-java-format.version>2.61.0</palantir-java-format.version>
+    <spotless.version>2.44.3</spotless.version>
+    <spring-cloud.version>2024.0.1</spring-cloud.version>
+    <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
   </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson-bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.palantir.javaformat</groupId>
+        <artifactId>palantir-java-format</artifactId>
+        <version>${palantir-java-format.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.solven-eu.cleanthat</groupId>
+        <artifactId>spotless</artifactId>
+        <version>${cleanthat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.flywaydb</groupId>
@@ -113,7 +146,6 @@
           <formats>
             <format>
               <includes>
-                <include>.hooks/pre-commit</include>
                 <include>.mvn/wrapper/maven-wrapper.properties</include>
                 <include>.gitattributes</include>
                 <include>.gitignore</include>
@@ -168,7 +200,6 @@
               <include>src/test/java/**/*.java</include>
             </includes>
             <cleanthat>
-              <!-- Version Optional -->
               <version>${cleanthat.vesion}</version>
               <mutators>
                 <mutator>SafeAndConsensual</mutator>
@@ -176,7 +207,6 @@
               </mutators>
             </cleanthat>
             <palantirJavaFormat>
-              <!-- Version Optional -->
               <version>${palantir-java-format.version}</version>
               <style>PALANTIR</style>
               <formatJavadoc>true</formatJavadoc>
@@ -209,6 +239,7 @@
               <include>**/*.md</include>
             </includes>
             <excludes>
+              <exclude>.hooks/**/*.md</exclude>
               <exclude>target/**/*.md</exclude>
             </excludes>
             <flexmark/>
@@ -220,6 +251,24 @@
           <execution>
             <goals>
               <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.rudikershaw.gitbuildhook</groupId>
+        <artifactId>git-build-hook-maven-plugin</artifactId>
+        <version>${git-build-hook-maven-plugin.version}</version>
+        <configuration>
+          <installHooks>
+            <pre-commit>.hooks/pre-commit</pre-commit>
+            <post-commit>.hooks/post-commit</post-commit>
+          </installHooks>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>install</goal>
             </goals>
           </execution>
         </executions>
@@ -238,7 +287,101 @@
               <artifactId>spring-boot-configuration-processor</artifactId>
             </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-Xlint:unchecked</arg>
+            <arg>-proc:full</arg>
+          </compilerArgs>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.9</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>${versions-maven-plugin.version}</version>
+        <configuration>
+          <ruleSet>
+            <ignoreVersions>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>(.+-SNAPSHOT|.+-M\d)</version>
+              </ignoreVersion>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+(alpha|beta).*</version>
+              </ignoreVersion>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+BETA.*</version>
+              </ignoreVersion>
+            </ignoreVersions>
+          </ruleSet>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+              <goal>report</goal>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>CLASS</element>
+                  <excludes>
+                    <exclude>com.mrlonis.example.config</exclude>
+                    <exclude>com.mrlonis.example.entity</exclude>
+                    <exclude>com.mrlonis.example.exception</exclude>
+                    <exclude>com.mrlonis.example.repository</exclude>
+                  </excludes>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.00</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.00</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -254,4 +397,43 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>local-development</id>
+      <activation>
+        <property>
+          <name>!env.SOME_ENV_VAR</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-maven-plugin.version}</version>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>git submodule update</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>initialize</phase>
+                <configuration>
+                  <executable>git</executable>
+                  <arguments>
+                    <argument>submodule</argument>
+                    <argument>update</argument>
+                    <argument>--init</argument>
+                    <argument>--remote</argument>
+                    <argument>--force</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
