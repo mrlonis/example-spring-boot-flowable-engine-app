@@ -167,6 +167,7 @@
                 <include>src/**/*.yml</include>
                 <include>.prettierrc</include>
                 <include>compose.yml</include>
+                <include>compose.yaml</include>
               </includes>
               <prettier>
                 <npmInstallCache>true</npmInstallCache>
