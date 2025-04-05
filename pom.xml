@@ -33,6 +33,13 @@
         <scope>import</scope>
       </dependency>
       <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>com.palantir.javaformat</groupId>
         <artifactId>palantir-java-format</artifactId>
         <version>${palantir-java-format.version}</version>
@@ -41,13 +48,6 @@
         <groupId>io.github.solven-eu.cleanthat</groupId>
         <artifactId>spotless</artifactId>
         <version>${cleanthat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -149,7 +149,15 @@
                 <include>.mvn/wrapper/maven-wrapper.properties</include>
                 <include>.gitattributes</include>
                 <include>.gitignore</include>
+                <include>.gitmodules</include>
+                <include>lombok.config</include>
                 <include>mvnw</include>
+              </includes>
+              <trimTrailingWhitespace/>
+              <endWithNewline/>
+            </format>
+            <format>
+              <includes>
                 <include>mvnw.cmd</include>
               </includes>
               <trimTrailingWhitespace/>
@@ -174,12 +182,11 @@
                 <devDependencyProperties>
                   <property>
                     <name>prettier</name>
-                    <value>3.4.2</value>
+                    <value>^3</value>
                   </property>
                   <property>
                     <name>@prettier/plugin-xml</name>
-                    <!-- this could not be written in the simpler to write 'devDependencies' element due to the package name starting with @. -->
-                    <value>3.4.1</value>
+                    <value>^3</value>
                   </property>
                 </devDependencyProperties>
                 <config>
@@ -187,7 +194,6 @@
                   <xmlSelfClosingSpace>false</xmlSelfClosingSpace>
                   <xmlSortAttributesByKey>true</xmlSortAttributesByKey>
                   <xmlWhitespaceSensitivity>strict</xmlWhitespaceSensitivity>
-                  <!-- Prettier v3 Only - Comma Delimited -->
                   <plugins>@prettier/plugin-xml</plugins>
                 </config>
               </prettier>
@@ -228,7 +234,7 @@
               <keepBlankLines>false</keepBlankLines>
               <sortDependencies>scope,groupId,artifactId</sortDependencies>
               <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
-              <sortDependencyManagement>groupId,artifactId</sortDependencyManagement>
+              <sortDependencyManagement>scope,groupId,artifactId</sortDependencyManagement>
               <sortPlugins>groupId,artifactId</sortPlugins>
               <sortProperties>true</sortProperties>
             </sortPom>
@@ -247,6 +253,28 @@
             <trimTrailingWhitespace/>
             <endWithNewline/>
           </markdown>
+          <sql>
+            <includes>
+              <include>src/**/*.sql</include>
+            </includes>
+            <prettier>
+              <npmInstallCache>true</npmInstallCache>
+              <devDependencyProperties>
+                <property>
+                  <name>prettier</name>
+                  <value>^3</value>
+                </property>
+                <property>
+                  <name>prettier-plugin-sql</name>
+                  <value>~0.18</value>
+                </property>
+              </devDependencyProperties>
+              <config>
+                <printWidth>120</printWidth>
+                <plugins>prettier-plugin-sql</plugins>
+              </config>
+            </prettier>
+          </sql>
         </configuration>
         <executions>
           <execution>
